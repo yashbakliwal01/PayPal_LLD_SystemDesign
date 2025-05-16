@@ -1,4 +1,4 @@
-package com.paypal.config;
+package com.paypal.gateway;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
