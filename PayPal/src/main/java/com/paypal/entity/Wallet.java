@@ -18,9 +18,10 @@ public class Wallet {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	
 	private double balance;
 	
 	@OneToOne
-	@JoinColumn
+	@JoinColumn(name = "user_id", nullable = false, unique = true)
 	private User user;
 }

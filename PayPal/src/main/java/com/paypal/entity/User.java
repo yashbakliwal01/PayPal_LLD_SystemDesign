@@ -17,14 +17,18 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	
 	private String name;
+	
+	@Column(unique = true, nullable = false)
 	private String email;
+	
+	@Column(length = 10, unique = true, nullable = false)
 	private String phone;
 	
 	@Column(name = "upi_id")
 	private String upiId;
 
-	@OneToOne(mappedBy = "user")
-	private Wallet wallet;
-
+	 @OneToOne(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
+	 private Wallet wallet;
 }
