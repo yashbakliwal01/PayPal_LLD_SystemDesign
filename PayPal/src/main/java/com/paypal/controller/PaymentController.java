@@ -68,3 +68,5 @@ public class PaymentController {
 	}
 
 }
+
+//api: http://localhost:8081/api/payments/pay?userId=103&payeeId=1003&amount=1&paymentMode=debit card&cardType=visa
