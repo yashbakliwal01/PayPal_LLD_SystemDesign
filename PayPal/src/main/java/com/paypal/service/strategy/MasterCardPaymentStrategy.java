@@ -20,11 +20,11 @@ public class MasterCardPaymentStrategy implements PaymentStrategy{
 	
 	@Override
 	public void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
-
+		
 		logger.info("Initiating Mastercard payment for user '{}' to payee '{}', amount Rs. {}", user.getName(), payee.getName(), amount);
 
-        // Step 1: Validate payment details
-        validatePaymentDetails(user, payee, amount);
+	        // Step 1: Validate payment details
+	        validatePaymentDetails(user, payee, amount);
         
 		try {
 			//step 2: payment request payload
@@ -32,10 +32,10 @@ public class MasterCardPaymentStrategy implements PaymentStrategy{
 			logger.debug("Payment request payload: {}", paymentRequestPayLoad);
 			
 			// Step 3: Call external payment gateway API
-            String paymentGatewayResponse = callPaymentGateway(paymentRequestPayLoad);
+           		 String paymentGatewayResponse = callPaymentGateway(paymentRequestPayLoad);
 
-            // Step 4: Process payment gateway response
-            boolean success = processGatewayResponse(paymentGatewayResponse);
+	                // Step 4: Process payment gateway response
+	                boolean success = processGatewayResponse(paymentGatewayResponse);
 			if(success) {
 				logger.info("Payment successful for user '{}' to payee '{}'. Amount: Rs. {}", user.getName(), payee.getName(), amount);
 			}else {
@@ -44,31 +44,20 @@ public class MasterCardPaymentStrategy implements PaymentStrategy{
 			}
 		}catch(Exception ex) {
 			logger.error("Exception during Mastercard payment processing: {}", ex.getMessage(), ex);
-            // Optionally handle rollback or compensating transactions here
-            throw new RuntimeException("Payment failed due to system error. Please try again later.");
-      
-			
-
+           		 // Optionally handle rollback or compensating transactions here
+            		throw new RuntimeException("Payment failed due to system error. Please try again later.");
 		}
-		
-        
-        
-        // Here we would add our real payment gateway integration logic.
-        // For now, we simulate success.
-        logger.info("Mastercard payment successful for user '{}' and payee '{}'", user.getName(), payee.getName());
-   
-		System.out.println("Inside mastercard");
 	}
 
 	private boolean processGatewayResponse(String response) {
 		// Parse JSON response and check status - simplified here
-        logger.debug("Processing payment gateway response: {}", response);
+       		 logger.debug("Processing payment gateway response: {}", response);
 
-        // In real code, use a JSON parser like Jackson or Gson:
-        // JsonNode node = objectMapper.readTree(response);
-        // return "success".equalsIgnoreCase(node.get("status").asText());
+     	        // In real code, use a JSON parser like Jackson or Gson:
+       		// JsonNode node = objectMapper.readTree(response);
+        	// return "success".equalsIgnoreCase(node.get("status").asText());
 
-        return response.contains("\"status\": \"success\"");
+       		 return response.contains("\"status\": \"success\"");
 	}
 
 	private String callPaymentGateway(String paymentRequestPayLoad) {
