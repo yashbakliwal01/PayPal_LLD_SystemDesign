@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.paypal.entity.Payee;
 import com.paypal.entity.User;
+import com.paypal.enums.CardType;
+import com.paypal.enums.PaymentMode;
 
 @Component
 public class UPIPaymentStrategy implements PaymentStrategy{
@@ -13,7 +15,7 @@ public class UPIPaymentStrategy implements PaymentStrategy{
 	private static final Logger logger = LoggerFactory.getLogger(UPIPaymentStrategy.class);
 	
 	@Override
-	public void pay(User user, double amount, Payee payee) {
+	public void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
 		 logger.info("Processing UPI payment of Rs. " + amount + " from user " + user.getName() + " to payee " + payee.getName());
 		 
 		 boolean paymentSuccess = initiateUPIPayment(user, payee, amount);

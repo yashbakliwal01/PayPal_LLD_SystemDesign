@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.paypal.gateway.PaymentModeConverter;
+import com.paypal.enums.PaymentModeConverter;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

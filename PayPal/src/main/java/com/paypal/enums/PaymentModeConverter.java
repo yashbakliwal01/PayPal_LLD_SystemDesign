@@ -1,9 +1,7 @@
-package com.paypal.gateway;
+package com.paypal.enums;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-
-import com.paypal.enums.PaymentMode;
 
 @Component
 public class PaymentModeConverter implements Converter<String, PaymentMode>{

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.paypal.entity.Payee;
 import com.paypal.entity.User;
+import com.paypal.enums.CardType;
 import com.paypal.enums.PaymentMode;
 import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.UserRepository;
@@ -35,10 +36,8 @@ public class PaymentController {
 	private FraudDetectionService fraudDetectionService;
 	
 	@PostMapping("/pay")
-	public ResponseEntity<String> makePayment( @RequestParam Long userId, 
-								@RequestParam Long payeeId, 
-								@RequestParam double amount, 
-								@RequestParam PaymentMode paymentMode) {
+	public ResponseEntity<String> makePayment( @RequestParam Long userId, @RequestParam Long payeeId, 
+			@RequestParam double amount, @RequestParam PaymentMode paymentMode,  @RequestParam(required=false) CardType cardType) {
 		
 		Optional<User> optionalUser = userRepository.findById(userId);
 	    if (optionalUser.isEmpty()) {
@@ -50,12 +49,6 @@ public class PaymentController {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Payee not found");
 	    }
 		
-//		User user = userRepository.findById(userId)
-//									.orElseThrow(()-> new RuntimeException("User not found"));
-//		Payee payee = payeeRepository.findById(payeeId)
-//									.orElseThrow(()-> new RuntimeException("Payee not found"));
-		
-	    
 	    User user = optionalUser.get();
 	    Payee payee = optionalPayee.get();
 	    
@@ -63,10 +56,15 @@ public class PaymentController {
 		if(fraudDetectionService.isFraudulentTransaction(user, amount, payee)) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Transaction blocked due to suspected fraud.");
 		}
-//		PaymentMode mode = PaymentMode.fromString(paymentMode);
-		paymentService.makePayment(user, amount, payee, paymentMode);
-//		return "Payment of Rs. " + amount + " using " + paymentMode + " was successful!";
-		return ResponseEntity.ok("Payment processed successfully.");
+		
+		
+		// Validate cardType only for CREDIT_CARD or DEBIT_CARD
+		if((paymentMode == paymentMode.CREDIT_CARD || paymentMode == paymentMode.DEBIT_CARD) && cardType==null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Card type must be specified for card payments.");
+		}
+		
+		paymentService.makePayment(user, amount, payee, paymentMode, cardType);
+		return ResponseEntity.ok("Payment processed successfully using " + paymentMode + (cardType!=null?" ("+cardType+")" : "") +"." );
 	}
 
 }
