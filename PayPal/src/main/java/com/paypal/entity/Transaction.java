@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -18,20 +19,26 @@ import lombok.Data;
 @Entity
 @Table(name="transactions")
 public class Transaction {
+// Ledger System (Transaction history with balance tracking)
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	
 	private double amount;
+	
 	private LocalDateTime timestamp;
+	
 	private boolean isRefund;
 	
 	@Enumerated(EnumType.STRING) 
 	private PaymentMode paymentMode;
 	
-    @ManyToOne 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
-    @ManyToOne 
+    @ManyToOne
+    @JoinColumn(name = "payee_id", nullable = false)
     private Payee payee;
 }
