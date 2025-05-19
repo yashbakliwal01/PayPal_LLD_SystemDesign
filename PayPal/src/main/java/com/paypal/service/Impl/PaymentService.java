@@ -13,9 +13,11 @@ import com.paypal.entity.User;
 import com.paypal.entity.Wallet;
 import com.paypal.enums.CardType;
 import com.paypal.enums.PaymentMode;
+import com.paypal.exception.AlreadyRefundedException;
 import com.paypal.exception.FraudulentTransactionException;
 import com.paypal.exception.InsufficientBalanceException;
 import com.paypal.exception.PaymentException;
+import com.paypal.exception.TransactionNotFoundException;
 import com.paypal.gateway.PaymentGateway;
 import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.TransactionRepository;
@@ -111,5 +113,44 @@ public class PaymentService {
 				 e.getMessage());
 		 throw e;//rethrow to propagate
 	 }
+	}
+	
+	
+	//REFUND
+	public void refundTransaction(Long transactionId, boolean confirmIfAlreadyRefunded) {
+		Transaction originalTransaction = transactionRepository.findById(transactionId).orElseThrow(()->new TransactionNotFoundException("Original Transaction not found with ID: "+transactionId));
+		
+		//check if refund is already exists for this transaction
+		boolean isAlreadyRefunded = transactionRepository.existsById(transactionId);
+		
+		if(originalTransaction.isRefund() && !confirmIfAlreadyRefunded) {
+			throw new AlreadyRefundedException("Transaction already refunded.");
+		}
+		
+		originalTransaction.setRefund(true);
+		transactionRepository.save(originalTransaction);
+
+		User user = originalTransaction.getUser();
+		Wallet wallet = user.getWallet();
+		double refundAmount = originalTransaction.getAmount();
+		
+		//refund must be credit back to user wallet
+		wallet.setBalance(wallet.getBalance()+refundAmount);
+		walletRepository.save(wallet);
+		
+		//creating refund transaction:
+		Transaction refundTransaction = new Transaction();
+		refundTransaction.setAmount(refundAmount);
+		refundTransaction.setTimestamp(LocalDateTime.now());
+		refundTransaction.setRefund(true);
+		refundTransaction.setUser(user);
+		refundTransaction.setPayee(originalTransaction.getPayee());
+		refundTransaction.setPaymentMode(originalTransaction.getPaymentMode());
+		transactionRepository.save(refundTransaction);
+		
+		
+		//notify this refund success message
+		notificationServiceImpl.notifyPayee(originalTransaction.getPayee(), user, refundAmount, refundTransaction.getId(), true, "Refund processed Successfully.");
+		
 	}
 }

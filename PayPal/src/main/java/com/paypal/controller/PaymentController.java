@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,8 @@ import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.UserRepository;
 import com.paypal.service.Impl.FraudDetectionService;
 import com.paypal.service.Impl.PaymentService;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/payments")
@@ -64,9 +67,22 @@ public class PaymentController {
 		}
 		
 		paymentService.makePayment(user, amount, payee, paymentMode, cardType);
-		return ResponseEntity.ok("Payment processed successfully using " + paymentMode + (cardType!=null?" ("+cardType+")" : "") +"." );
+		return ResponseEntity.ok("Payment of Rs."+amount+" processed successfully using " + paymentMode + (cardType!=null?" ("+cardType+")" : "") +"." );
 	}
 
+	
+	@PostMapping("/refund")
+	public ResponseEntity<String> refundTransfer(@RequestParam Long transactionId,
+			@RequestParam(defaultValue="false") boolean confirm) {
+		
+		try {
+			paymentService.refundTransaction(transactionId, confirm);
+			return ResponseEntity.ok("Refund processed successfully for Transaction ID: " + transactionId);
+		}catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refund FAILED: "+e.getMessage());
+		}
+	}
+	
 }
 
 //api: http://localhost:8081/api/payments/pay?userId=103&payeeId=1003&amount=1&paymentMode=debit card&cardType=visa
