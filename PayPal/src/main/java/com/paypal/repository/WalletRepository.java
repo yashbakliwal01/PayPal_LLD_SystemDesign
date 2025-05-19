@@ -8,4 +8,5 @@ import com.paypal.entity.Wallet;
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, Long>{
 
+	Wallet findByUserId(Long userId);
 }
