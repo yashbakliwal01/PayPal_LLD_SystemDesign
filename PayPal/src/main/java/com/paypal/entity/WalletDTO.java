@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class WalletDTO {
     
-	private Long id;
+    private Long id;
     private Long userId;
     private double balance;
 
