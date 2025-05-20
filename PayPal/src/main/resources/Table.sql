@@ -13,6 +13,7 @@ INSERT INTO users(id, email, name, phone, upi_id) VALUES (104, 'xyz@gmail.com', 
 select * from wallet;
 ALTER TABLE wallet DROP COLUMN user_user_id;
 
+
 select * from payee;
 select * from users;
 select * from wallet;
