@@ -1,7 +1,16 @@
 package com.paypal.entity;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.paypal.enums.Role;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,9 +35,24 @@ public class User {
 	@Column(length = 10, unique = true, nullable = false)
 	private String phone;
 	
+	@Column(nullable = false)
+	private String password;
+	
 	@Column(name = "upi_id")
 	private String upiId;
+	
+	@Enumerated(EnumType.STRING)
+	private Role role = Role.USER;
+	
+	@CreationTimestamp
+	@Column(updatable = false)
+	private LocalDateTime createdAt;
+	
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
 	 @OneToOne(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL)
 	 private Wallet wallet;
+	 
+	 
 }

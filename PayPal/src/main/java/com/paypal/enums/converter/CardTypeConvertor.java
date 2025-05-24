@@ -1,7 +1,9 @@
-package com.paypal.enums;
+package com.paypal.enums.converter;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
+
+import com.paypal.enums.CardType;
 
 
 @Component
