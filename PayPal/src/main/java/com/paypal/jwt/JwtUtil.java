@@ -83,27 +83,24 @@ public class JwtUtil {
 				.getSubject();
 	}
 	
-	 // Cookie-specific methods
-    public String getJwtFromCookies(HttpServletRequest request) {
-        Cookie cookie = WebUtils.getCookie(request, jwtCookie);
-        return cookie != null ? cookie.getValue() : null;
-    }
-
-    public ResponseCookie generateJwtCookie(String username) {
-        String jwt = generateToken(username);
-        return ResponseCookie.from(jwtCookie, jwt)
-                .path("/")
-                .maxAge(jwtExpirationMs / 1000)
-                .httpOnly(true)
-                .build();
-    }
-
-    public ResponseCookie getCleanJwtCookie() {
-        return ResponseCookie.from(jwtCookie, "")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .build();
-    }
+	//cookies specific methods
+	public String getJwtFromCookies(HttpServletRequest request) {
+		Cookie cookie = WebUtils.getCookie(request, jwtCookie);
+		return cookie != null ? cookie.getValue() : null;
+	}
+	
+	public ResponseCookie generateJwtCookie(String username) {
+		String jwt = generateToken(username);
+		return ResponseCookie.from(jwtCookie, jwt)
+				.path("/").maxAge(jwtExpirationMs/1000)
+				.httpOnly(true).build();
+	}
+	
+	public ResponseCookie getCleanJwtCookie() {
+		return ResponseCookie.from(jwtCookie, "")
+				.path("/").maxAge(jwtExpirationMs/1000)
+				.httpOnly(true).build();
+	}
 	
 }
+
