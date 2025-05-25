@@ -1,4 +1,4 @@
-package com.paypal.jwt;
+package com.paypal.utility;
 
 
 import java.nio.charset.StandardCharsets;
