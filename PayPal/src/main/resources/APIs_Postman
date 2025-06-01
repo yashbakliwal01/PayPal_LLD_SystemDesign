@@ -1,0 +1,7 @@
+1) USERCONTROLLER: Registration new user
+url: http://localhost:8081/api/auth/login
+body:
+{
+    "email": "rj@gmail.com",
+    "password": "rahul@123"
+}
