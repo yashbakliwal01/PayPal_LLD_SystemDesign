@@ -74,7 +74,7 @@ public class JwtUtil {
 				.before(new Date());
 	}
 
-	private String extractUsername(String token) {
+	public String extractUsername(String token) {
 		return Jwts.parserBuilder()
 				.setSigningKey(key)
 				.build()
@@ -103,4 +103,3 @@ public class JwtUtil {
 	}
 	
 }
-

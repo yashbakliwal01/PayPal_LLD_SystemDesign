@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,6 @@ import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.UserRepository;
 import com.paypal.service.Impl.FraudDetectionService;
 import com.paypal.service.Impl.PaymentService;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
