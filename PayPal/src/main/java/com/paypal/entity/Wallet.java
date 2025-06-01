@@ -17,11 +17,12 @@ import lombok.Data;
 public class Wallet {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "wallet_id", nullable = false)
 	private Long id;
 	
-	private double balance;
+	@Column(nullable=false)
+	private double balance=0.0;
 	
 	@OneToOne
 	@JoinColumn(name = "user_id", nullable = false, unique = true)
