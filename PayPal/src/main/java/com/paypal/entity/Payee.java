@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
@@ -18,7 +20,9 @@ public class Payee {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
-	private String name;
+	
+	@NotBlank(message = "Name is mandatory")
+    private String name;
 	
 	@Email
 	@Column(unique = true, nullable = false)
@@ -28,10 +32,12 @@ public class Payee {
 	@Column(unique = true, nullable = false)
 	private String phoneNumber;
 	
-	@Pattern(regexp = "^[0-9]{1,12}$", message = "Account number must be uppercase letters and digits only, up to 16 characters")
+	@Pattern(regexp = "^[A-Z0-9]{1,16}$", message = "Account number must be uppercase letters and digits only, up to 16 characters")
 	@Column(unique = true, nullable = false)
 	private String accountIdentifier;
 	
 	@Column(name="upi_id")
+	@Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid UPI ID format")
+	@NotBlank(message = "UPI ID is mandatory")
 	private String upiId;
 }

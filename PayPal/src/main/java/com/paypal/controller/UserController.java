@@ -4,8 +4,9 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,13 +40,30 @@ public class UserController {
 	}
 
 	
-	@PutMapping("/{id}/upiId")
-	public String updateUpiId(@PathVariable Long id, @RequestParam String upiId) {
-		User user = userRepository.findById(id)
+	@PutMapping("/upiId")
+	public ResponseEntity<?> updateUpiId(@RequestParam String upiId) {
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		
+		if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+			return ResponseEntity.status(401).body(Map.of("error", "You must be logged in to update UPI ID"));
+		}
+		
+		String currentUserEmail = auth.getName();
+		
+		User user = userRepository.findByEmail(currentUserEmail)
 									.orElseThrow(() -> new RuntimeException("User not found"));
+		
+		//validate the upi
+		if(!upiId.contains("@")) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Invalid UPI ID format"));
+		}
+		
+		//update the userId
 		user.setUpiId(upiId);
 		userRepository.save(user);
-		return "UPI ID updated successfully for user " + user.getName();
+		
+		return ResponseEntity.ok(Map.of("message", "UPI ID updated successfully"));
 		
 	}
 }
