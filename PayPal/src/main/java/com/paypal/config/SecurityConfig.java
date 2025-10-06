@@ -33,7 +33,8 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
        return http.csrf(csrf->csrf.disable())
     		   .authorizeHttpRequests(auth->auth
-    				   .requestMatchers("/api/auth/**", "/api/users/register").permitAll()
+    				   .requestMatchers("/api/auth/**", "/api/users/"
+    				   		+ "").permitAll()
     				   
     				   //Only for ADMIN access where he can use all users and managing system
     				   .requestMatchers("/api/admin/**").hasRole("ADMIN")
