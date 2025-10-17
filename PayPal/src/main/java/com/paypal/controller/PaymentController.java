@@ -1,5 +1,6 @@
 package com.paypal.controller;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import com.paypal.entity.Payee;
 import com.paypal.entity.User;
 import com.paypal.enums.CardType;
 import com.paypal.enums.PaymentMode;
+import com.paypal.exception.AlreadyRefundedException;
 import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.UserRepository;
 import com.paypal.service.Impl.FraudDetectionService;
@@ -37,8 +39,12 @@ public class PaymentController {
 	private FraudDetectionService fraudDetectionService;
 	
 	@PostMapping("/pay")
-	public ResponseEntity<String> makePayment( @RequestParam Long userId, @RequestParam Long payeeId, 
-			@RequestParam double amount, @RequestParam PaymentMode paymentMode,  @RequestParam(required=false) CardType cardType) {
+	public ResponseEntity<String> makePayment( 
+			@RequestParam Long userId, 
+			@RequestParam Long payeeId, 
+			@RequestParam double amount, 
+			@RequestParam PaymentMode paymentMode,  
+			@RequestParam(required=false) CardType cardType) {
 		
 		Optional<User> optionalUser = userRepository.findById(userId);
 	    if (optionalUser.isEmpty()) {
@@ -70,17 +76,28 @@ public class PaymentController {
 
 	
 	@PostMapping("/refund")
-	public ResponseEntity<String> refundTransfer(@RequestParam Long transactionId,
-			@RequestParam(defaultValue="false") boolean confirm) {
-		
-		try {
-			paymentService.refundTransaction(transactionId, confirm);
-			return ResponseEntity.ok("Refund processed successfully for Transaction ID: " + transactionId);
-		}catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refund FAILED: "+e.getMessage());
-		}
+	public ResponseEntity<?> refundTransfer(@RequestParam Long transactionId,
+	                                        @RequestParam(defaultValue = "false") boolean confirm) {
+	    try {
+	        paymentService.refundTransaction(transactionId, confirm);
+	        return ResponseEntity.ok(Map.of(
+	            "status", "success",
+	            "transactionId", transactionId,
+	            "message", "Refund processed successfully."
+	        ));
+	    } catch (AlreadyRefundedException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+	            "status", "warning",
+	            "transactionId", transactionId,
+	            "message", "Transaction already refunded. Confirm again with ?confirm=true to force refund."
+	        ));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+	            "status", "failed",
+	            "message", e.getMessage()
+	        ));
+	    }
 	}
-	
 }
 
 //api: http://localhost:8081/api/payments/pay?userId=103&payeeId=1003&amount=1&paymentMode=debit card&cardType=visa

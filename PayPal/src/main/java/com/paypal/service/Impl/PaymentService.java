@@ -19,24 +19,18 @@ import com.paypal.exception.InsufficientBalanceException;
 import com.paypal.exception.PaymentException;
 import com.paypal.exception.TransactionNotFoundException;
 import com.paypal.gateway.PaymentGateway;
-import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.TransactionRepository;
-import com.paypal.repository.UserRepository;
 import com.paypal.repository.WalletRepository;
 import com.paypal.service.strategy.MasterCardPaymentStrategy;
 import com.paypal.service.strategy.PaymentStrategy;
 import com.paypal.service.strategy.RupayPaymentStrategy;
 import com.paypal.service.strategy.VisaPaymentStrategy;
 
+import jakarta.annotation.PostConstruct;
+
 @Service
 @Transactional
 public class PaymentService {
-	
-	@Autowired
-	private UserRepository userRepository;
-	
-	@Autowired
-	private PayeeRepository payeeRepository;
 	
 	@Autowired
 	private TransactionRepository transactionRepository;
@@ -52,46 +46,50 @@ public class PaymentService {
 	
 	private final PaymentGateway paymentGateway;
 
-	@Autowired
+	private Map<CardType, PaymentStrategy> cardStrategyMap;
+	
 	public PaymentService(PaymentGateway paymentGateway) {
 		this.paymentGateway = paymentGateway;
 	}
 	
-	//strategy pattern is used here for cardtype
-	public void makePayment(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
-		Map<CardType, PaymentStrategy> cardStrategyMap = Map.of(
+	
+	@PostConstruct
+	private void initCardStrategies() {
+		cardStrategyMap = Map.of(
 				CardType.VISA, new VisaPaymentStrategy(),
 				CardType.RUPAY, new RupayPaymentStrategy(),
 				CardType.MASTERCARD, new MasterCardPaymentStrategy()
 				);
-		if (paymentMode == PaymentMode.CREDIT_CARD) {
-	        PaymentStrategy strategy = cardStrategyMap.get(cardType);
-	        if (strategy == null) throw new IllegalArgumentException("Unsupported card type");
-	        strategy.pay(user, amount, payee, paymentMode, cardType);
-	    }
-		
-		
-		Transaction transaction = new Transaction();
+	}
+	
+	
+	public void makePayment(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
 		try {
+			//1. Transaction Fraud Detection
 			if(fraudDetectionService.isFraudulentTransaction(user, amount, payee)) {
 				throw new FraudulentTransactionException("Fraudulent transaction detected! Payment aborted.");
 			}
 			
-			//check wallet balance
+			//2. Wallet Balance check
 			Wallet wallet = user.getWallet();
-			if(wallet.getBalance()<amount) {
+			if(wallet.getBalance() < amount) {
 				throw new InsufficientBalanceException("Insufficient wallet balance.");
 			}
+			
+			//3. Deduct Balance
 			wallet.setBalance(wallet.getBalance() - amount);
 			walletRepository.save(wallet);
 			
-			try {
-				paymentGateway.processPayment(user, amount, payee, paymentMode, cardType);
-			}catch(Exception e) {
-				throw new PaymentException("Payment processing FAILED.", e);
-			}
+			//4. Process Payment (via using Strategy Pattern + Gateway)
+			if(paymentMode == PaymentMode.CREDIT_CARD || paymentMode == PaymentMode.DEBIT_CARD) {
+		        PaymentStrategy strategy = cardStrategyMap.get(cardType);
+		        if (strategy == null) throw new IllegalArgumentException("Unsupported card type");
+		        strategy.pay(user, amount, payee, paymentMode, cardType);
+		    }
+			paymentGateway.processPayment(user, amount, payee, paymentMode, cardType);
 			
-			//save transaction
+			//5. Save Transaction
+			Transaction transaction = new Transaction();
 			transaction.setAmount(amount);
 			transaction.setTimestamp(LocalDateTime.now());
 			transaction.setRefund(false);
@@ -100,28 +98,25 @@ public class PaymentService {
 			transaction.setPaymentMode(paymentMode);
 			transactionRepository.save(transaction);
 			
-			//notify success
+			//6. Notify Success
 			notificationServiceImpl.notifyPayee(payee, user, amount, transaction.getId(), true, null);
 		}catch(Exception e) {
-			//notify failure
-		 notificationServiceImpl.notifyPayee(
-				 payee, 
-				 user, 
-				 amount, 
-				 (transaction!=null)?transaction.getId(): null, 
-				 false,
-				 e.getMessage());
-		 throw e;//rethrow to propagate
-	 }
+			//7. Notify Failure
+			notificationServiceImpl.notifyPayee(
+					 payee, 
+					 user, 
+					 amount, 
+					 null, 
+					 false,
+					 e.getMessage());
+		 throw new PaymentException("Payment processing FAILED.", e);
+		}
 	}
 	
-	
-	//REFUND
-	public void refundTransaction(Long transactionId, boolean confirmIfAlreadyRefunded) {
-		Transaction originalTransaction = transactionRepository.findById(transactionId).orElseThrow(()->new TransactionNotFoundException("Original Transaction not found with ID: "+transactionId));
-		
-		//check if refund is already exists for this transaction
-		boolean isAlreadyRefunded = transactionRepository.existsById(transactionId);
+	//Refund Transaction
+	public boolean refundTransaction(Long transactionId, boolean confirmIfAlreadyRefunded) {
+		Transaction originalTransaction = transactionRepository.findById(transactionId)
+				.orElseThrow(() -> new TransactionNotFoundException("Original Transaction not found with ID: " + transactionId));
 		
 		if(originalTransaction.isRefund() && !confirmIfAlreadyRefunded) {
 			throw new AlreadyRefundedException("Transaction already refunded.");
@@ -129,16 +124,14 @@ public class PaymentService {
 		
 		originalTransaction.setRefund(true);
 		transactionRepository.save(originalTransaction);
-
+		
 		User user = originalTransaction.getUser();
 		Wallet wallet = user.getWallet();
 		double refundAmount = originalTransaction.getAmount();
 		
-		//refund must be credit back to user wallet
-		wallet.setBalance(wallet.getBalance()+refundAmount);
+		wallet.setBalance(wallet.getBalance() + refundAmount);
 		walletRepository.save(wallet);
 		
-		//creating refund transaction:
 		Transaction refundTransaction = new Transaction();
 		refundTransaction.setAmount(refundAmount);
 		refundTransaction.setTimestamp(LocalDateTime.now());
@@ -148,9 +141,13 @@ public class PaymentService {
 		refundTransaction.setPaymentMode(originalTransaction.getPaymentMode());
 		transactionRepository.save(refundTransaction);
 		
-		
-		//notify this refund success message
-		notificationServiceImpl.notifyPayee(originalTransaction.getPayee(), user, refundAmount, refundTransaction.getId(), true, "Refund processed Successfully.");
-		
+		notificationServiceImpl.notifyPayee(
+				originalTransaction.getPayee(), 
+				user, 
+				refundAmount, 
+				refundTransaction.getId(), 
+				true, 
+				"Refund processed Successfully.");
+		return confirmIfAlreadyRefunded;
 	}
 }
