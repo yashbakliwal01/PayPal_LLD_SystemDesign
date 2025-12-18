@@ -15,7 +15,7 @@ A backend payment platform built in **Java** using **Spring Boot** that simulate
 <img src="https://img.shields.io/badge/MySQL-00618A.svg?style=for-the-badge&logo=mysql&logoColor=white"/>
 <img src="https://img.shields.io/badge/REST%20API-007396.svg?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/Maven-C71A36.svg?style=for-the-badge&logo=apachemaven&logoColor=white"/>
-<img src="https://img.shields.io/badge/JUnit-25A162.svg?style=for-the-badge&logo=junit5&logoColor=white"/>
+<!-- <img src="https://img.shields.io/badge/JUnit-25A162.svg?style=for-the-badge&logo=junit5&logoColor=white"/> -->
 
 </div>
 
