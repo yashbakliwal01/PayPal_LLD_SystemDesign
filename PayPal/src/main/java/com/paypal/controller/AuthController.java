@@ -62,7 +62,6 @@ public class AuthController {
 	        .header(HttpHeaders.SET_COOKIE, setCookie)
 	        .body(Map.of("message", "Logged out successfully"));
 	}
-
-	 
+ 
 
 }
