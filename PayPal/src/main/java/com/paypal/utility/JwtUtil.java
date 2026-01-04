@@ -32,6 +32,10 @@ public class JwtUtil {
     @Value("${paypal.jwt.cookieName}")
     private String jwtCookie;
 
+    // make secure flag configurable so local dev over HTTP can work
+    @Value("${paypal.jwt.secure}")
+    private boolean jwtSecure;
+
     private Key key;
 
     @PostConstruct
@@ -92,7 +96,7 @@ public class JwtUtil {
                 .path("/")                    // available to all paths
                 .maxAge(jwtExpirationMs / 1000)
                 .httpOnly(true)               // protect from JS access (security)
-                .secure(true)                 // required for SameSite=None
+                .secure(jwtSecure)            // configurable secure flag
                 .sameSite("None")             // allow cross-site cookies (React frontend)
                 .build();
     }
@@ -102,7 +106,7 @@ public class JwtUtil {
                 .path("/")
                 .maxAge(0)                    // delete immediately
                 .httpOnly(true)
-                .secure(true)
+                .secure(jwtSecure)
                 .sameSite("None")
                 .build();
     }

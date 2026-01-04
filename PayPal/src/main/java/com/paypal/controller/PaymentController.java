@@ -66,7 +66,7 @@ public class PaymentController {
 		
 		
 		// Validate cardType only for CREDIT_CARD or DEBIT_CARD
-		if((paymentMode == paymentMode.CREDIT_CARD || paymentMode == paymentMode.DEBIT_CARD) && cardType==null) {
+		if((paymentMode == PaymentMode.CREDIT_CARD || paymentMode == PaymentMode.DEBIT_CARD) && cardType==null) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Card type must be specified for card payments.");
 		}
 		
