@@ -28,34 +28,34 @@ A backend payment platform built in **Java** using **Spring Boot** that simulate
 
 ## 📌 Features
 
-👛 Wallet Creation & Balance Management
+👛 Wallet Creation & Balance Management:
 Users can create wallets and manage their account balance securely.
 
-💸 Money Transfer Between Users
+💸 Money Transfer Between Users:
 Seamless peer-to-peer money transfer with proper validation and transaction safety.
 
-📜 Transaction History with Pagination
+📜 Transaction History with Pagination:
 View complete transaction history with pagination support for efficient data loading.
 
-🔔 Real-Time Notification System
+🔔 Real-Time Notification System:
 Users receive notifications after successful money transfers, payments, or refunds.
 
-🔄 Refund Processing System
+🔄 Refund Processing System:
 Supports secure refund handling for failed or reversed transactions.
 
-📊 Ledger-Style Transaction Tracking
+📊 Ledger-Style Transaction Tracking:
 Every transaction is recorded in a ledger-style system for accurate financial tracking.
 
-🚀 Strategy Design Pattern Implementation
+🚀 Strategy Design Pattern Implementation:
 Multiple payment methods like UPI, Visa, RuPay, MasterCard handled using the Strategy Pattern.
 
-⚠️ Global Exception Handling & Validation
+⚠️ Global Exception Handling & Validation:
 Centralized error handling with proper request validation.
 
-🔒 JWT-Based Authentication
+🔒 JWT-Based Authentication:
 Secure login system implemented using Spring Security and JWT tokens.
 
-🛡 Secured REST APIs
+🛡 Secured REST APIs:
 Role-based API protection using Spring Security authorization.
 
 
