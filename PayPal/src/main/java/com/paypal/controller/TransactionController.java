@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.paypal.dto.TransactionDTO;
 import com.paypal.entity.Transaction;
 import com.paypal.repository.TransactionRepository;
-import com.paypal.service.strategy.MasterCardPaymentStrategy;
+import com.paypal.strategy.MasterCardPaymentStrategy;
 
 @RestController
 @RequestMapping("/api/transactions")

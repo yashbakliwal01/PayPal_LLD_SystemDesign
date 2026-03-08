@@ -10,10 +10,10 @@ import com.paypal.entity.Payee;
 import com.paypal.entity.User;
 import com.paypal.enums.CardType;
 import com.paypal.enums.PaymentMode;
-import com.paypal.service.strategy.MasterCardPaymentStrategy;
-import com.paypal.service.strategy.PaymentStrategy;
-import com.paypal.service.strategy.RupayPaymentStrategy;
-import com.paypal.service.strategy.VisaPaymentStrategy;
+import com.paypal.strategy.MasterCardPaymentStrategy;
+import com.paypal.strategy.PaymentStrategy;
+import com.paypal.strategy.RupayPaymentStrategy;
+import com.paypal.strategy.VisaPaymentStrategy;
 
 
 @Component

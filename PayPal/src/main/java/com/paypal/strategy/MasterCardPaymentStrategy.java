@@ -1,4 +1,4 @@
-package com.paypal.service.strategy;
+package com.paypal.strategy;
 
 import java.util.HashMap;
 import java.util.Map;

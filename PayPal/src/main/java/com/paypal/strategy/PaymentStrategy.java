@@ -1,4 +1,4 @@
-package com.paypal.service.strategy;
+package com.paypal.strategy;
 
 import com.paypal.entity.Payee;
 import com.paypal.entity.User;
