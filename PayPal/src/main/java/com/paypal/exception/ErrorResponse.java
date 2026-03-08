@@ -15,6 +15,8 @@ public class ErrorResponse {
 	private String path;
 	private List<String> details;
 	
+	public ErrorResponse() {}
+	
 	public ErrorResponse(LocalDateTime timeStamp, int status, String error, String message, String path) {
 		super();
 		this.timeStamp = timeStamp;

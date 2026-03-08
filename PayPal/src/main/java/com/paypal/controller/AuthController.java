@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.paypal.entity.LoginRequest;
-import com.paypal.utility.JwtUtil;
-import com.paypal.utility.security.CustomUserDetails;
+import com.paypal.security.CustomUserDetails;
+import com.paypal.security.JwtUtil;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController

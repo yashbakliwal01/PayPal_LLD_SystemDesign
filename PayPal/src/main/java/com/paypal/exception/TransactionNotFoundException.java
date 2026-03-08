@@ -1,14 +1,10 @@
 package com.paypal.exception;
 
-public class TransactionNotFoundException extends RuntimeException {
+public class TransactionNotFoundException extends BaseAppException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public TransactionNotFoundException(String message) {
-		super(message);
-	}
-
+    public TransactionNotFoundException(String message) {
+        super(message);
+    }
 }

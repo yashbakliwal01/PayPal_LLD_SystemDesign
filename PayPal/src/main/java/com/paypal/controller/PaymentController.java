@@ -3,22 +3,24 @@ package com.paypal.controller;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.paypal.dto.PaymentRequest;
 import com.paypal.entity.Payee;
 import com.paypal.entity.User;
-import com.paypal.enums.CardType;
-import com.paypal.enums.PaymentMode;
 import com.paypal.exception.AlreadyRefundedException;
+import com.paypal.exception.TransactionNotFoundException;
 import com.paypal.repository.PayeeRepository;
 import com.paypal.repository.UserRepository;
-import com.paypal.service.Impl.FraudDetectionService;
 import com.paypal.service.Impl.PaymentService;
 
 
@@ -35,69 +37,90 @@ public class PaymentController {
 	@Autowired
 	private PayeeRepository payeeRepository;
 	
-	@Autowired
-	private FraudDetectionService fraudDetectionService;
-	
-	@PostMapping("/pay")
-	public ResponseEntity<String> makePayment( 
-			@RequestParam Long userId, 
-			@RequestParam Long payeeId, 
-			@RequestParam double amount, 
-			@RequestParam PaymentMode paymentMode,  
-			@RequestParam(required=false) CardType cardType) {
-		
-		Optional<User> optionalUser = userRepository.findById(userId);
-	    if (optionalUser.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-	    }
+	private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
 
-	    Optional<Payee> optionalPayee = payeeRepository.findById(payeeId);
-	    if (optionalPayee.isEmpty()) {
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Payee not found");
+	@PostMapping("/pay")
+	public ResponseEntity<?> makePayment(@RequestBody PaymentRequest request) {
+		
+		logger.info("Payment request received for payee:: {}", request.getPayerIdentifier());
+		
+		Optional<User> payerOpt = userRepository.findByEmail(request.getPayerIdentifier());
+		if(payerOpt.isEmpty()) {
+			logger.warn("Payer not found: {}", request.getPayerIdentifier());
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Payer not found"));
+		}
+		
+		
+		Optional<Payee> payeeOpt = payeeRepository.findById(Long.valueOf(request.getPayeeIdentifier()));
+		if (payeeOpt.isEmpty()) {
+	        logger.warn("Payee not found: {}", request.getPayeeIdentifier());
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Payee not found"));
 	    }
 		
-	    User user = optionalUser.get();
-	    Payee payee = optionalPayee.get();
-	    
-		//fraud check
-		if(fraudDetectionService.isFraudulentTransaction(user, amount, payee)) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Transaction blocked due to suspected fraud.");
-		}
+		User payer = payerOpt.get();
+		Payee payee = payeeOpt.get();
 		
+		logger.info("Processing payment from {} to {} for amount {}", payer.getName(), payee.getName(), request.getAmount());
 		
-		// Validate cardType only for CREDIT_CARD or DEBIT_CARD
-		if((paymentMode == PaymentMode.CREDIT_CARD || paymentMode == PaymentMode.DEBIT_CARD) && cardType==null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Card type must be specified for card payments.");
-		}
+		paymentService.makePayment(payer, 
+								   request.getAmount(), 
+								   payee, 
+								   request.getPaymentMode(), 
+								   request.getCardType());
 		
-		paymentService.makePayment(user, amount, payee, paymentMode, cardType);
-		return ResponseEntity.ok("Payment of Rs."+amount+" processed successfully using " + paymentMode + (cardType!=null?" ("+cardType+")" : "") +"." );
+		logger.info(
+			    "Payment of Rs.{} from {} to {} processed successfully using {}",
+			    request.getAmount(),
+			    payer.getName(),
+			    payee.getName(),
+			    request.getPaymentMode(),request.getCardType()
+			);
+		
+		return ResponseEntity.ok(Map.of("status", "Payment Successful", "amount", request.getAmount()));
+		
 	}
 
 	
 	@PostMapping("/refund")
-	public ResponseEntity<?> refundTransfer(@RequestParam Long transactionId,
-	                                        @RequestParam(defaultValue = "false") boolean confirm) {
+	public ResponseEntity<?> refundTransfer(@RequestParam String transactionRef, @RequestParam(defaultValue = "false") boolean confirm) {
+		
+		logger.info(">> Refund request received for transactionRef: {}", transactionRef);
+		
 	    try {
-	        paymentService.refundTransaction(transactionId, confirm);
+	        paymentService.refundTransaction(transactionRef, confirm);
+	        
+	        logger.info("Refund successful for transaction {}", transactionRef); 
 	        return ResponseEntity.ok(Map.of(
 	            "status", "success",
-	            "transactionId", transactionId,
+	            "transactionId", transactionRef,
 	            "message", "Refund processed successfully."
 	        ));
 	    } catch (AlreadyRefundedException e) {
+	    	
+	    	logger.warn("Refund already done for {}", transactionRef);
+
 	        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-	            "status", "warning",
-	            "transactionId", transactionId,
-	            "message", "Transaction already refunded. Confirm again with ?confirm=true to force refund."
+	                "status", "failed",
+	                "transactionRef", transactionRef,
+	                "message", e.getMessage()
 	        ));
-	    } catch (Exception e) {
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+	    } catch (TransactionNotFoundException e) {
+
+	        logger.error("Refund failed. Transaction not found {}", transactionRef);
+
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+	                "status", "failed",
+	                "transactionRef", transactionRef,
+	                "message", e.getMessage()
+	        ));
+
+	    }catch (Exception e) {
+	    	logger.error("Refund failed for transaction {}", transactionRef, e);
+	    	
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
 	            "status", "failed",
-	            "message", e.getMessage()
+	            "message", "Refund processing failed: " + e.getMessage()
 	        ));
 	    }
 	}
 }
-
-//api: http://localhost:8081/api/payments/pay?userId=103&payeeId=1003&amount=1&paymentMode=debit card&cardType=visa

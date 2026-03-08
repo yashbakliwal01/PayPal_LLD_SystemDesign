@@ -7,5 +7,5 @@ import com.paypal.enums.PaymentMode;
 
 public interface PaymentStrategy {
 	//How to Pay then use STRATEGY pattern
-	void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cvardType);
+	void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType);
 }

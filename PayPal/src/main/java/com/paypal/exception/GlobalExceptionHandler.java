@@ -60,13 +60,29 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "Validation failed",
-                request.getDescription(false)
+                request.getDescription(false).replace("uri=", "")
         );
         response.setDetails(details);
 
-        logger.error("Validation Error: {}", details);
+        logger.warn("Validation Error: {}", details);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+    
+    
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTransactionNotFoundException(
+            TransactionNotFoundException ex, WebRequest request) {
+
+        logger.warn("Transaction not found: {}", ex.getMessage());
+
+        return buildErrorResponse(
+                ex,
+                HttpStatus.NOT_FOUND,
+                ex.getMessage(),
+                request
+        );
+    }    
+    
 
     // Handles any unhandled exceptions
     @ExceptionHandler(Exception.class)
@@ -76,14 +92,22 @@ public class GlobalExceptionHandler {
     }
 
     // Utility method to build structured ErrorResponse
-    private ResponseEntity<ErrorResponse> buildErrorResponse(Exception ex, HttpStatus status, String message, WebRequest request) {
+    private ResponseEntity<ErrorResponse> buildErrorResponse(
+            Exception ex,
+            HttpStatus status,
+            String message,
+            WebRequest request) {
+
+        String path = request.getDescription(false).replace("uri=", "");
+
         ErrorResponse response = new ErrorResponse(
                 LocalDateTime.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                request.getDescription(false)
+                path
         );
+
         return new ResponseEntity<>(response, status);
     }
 }

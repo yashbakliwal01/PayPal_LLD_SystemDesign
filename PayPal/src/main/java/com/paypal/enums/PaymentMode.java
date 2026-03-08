@@ -3,8 +3,9 @@ package com.paypal.enums;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum PaymentMode {
+import com.fasterxml.jackson.annotation.JsonCreator;
 
+public enum PaymentMode {
 	CREDIT_CARD,
 	DEBIT_CARD,
 	UPI;
@@ -22,7 +23,11 @@ public enum PaymentMode {
 	}
 	
 	
+	@JsonCreator
 	public static PaymentMode fromString(String input) {
+		
+		if(input==null) return null;
+		
 		String normalizedInput = normalize(input);
 		PaymentMode mode = normalizedMap.get(normalizedInput);
 		if(mode==null) {

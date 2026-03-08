@@ -8,6 +8,7 @@ public class PayPalApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PayPalApplication.class, args);
+		System.out.println("PayPal Payment System Started Successfully...!!!");
 	}
 
 }

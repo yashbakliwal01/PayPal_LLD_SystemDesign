@@ -7,5 +7,7 @@ import com.paypal.entity.Payee;
 
 @Repository
 public interface PayeeRepository extends JpaRepository<Payee, Long> {
-
+	Payee findByEmail(String email);
+	Payee findByPhoneNumber(String phoneNumber);
+	Payee findByUpiId(String upiId);
 }

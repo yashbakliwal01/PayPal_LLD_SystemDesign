@@ -18,7 +18,7 @@ import lombok.Data;
 public class Payee {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@NotBlank(message = "Name is mandatory")
@@ -32,12 +32,6 @@ public class Payee {
 	@Column(unique = true, nullable = false)
 	private String phoneNumber;
 	
-	@Pattern(regexp = "^[A-Z0-9]{1,16}$", message = "Account number must be uppercase letters and digits only, up to 16 characters")
-	@Column(unique = true, nullable = false)
-	private String accountIdentifier;
-	
-	@Column(name="upi_id")
-	@Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid UPI ID format")
-	@NotBlank(message = "UPI ID is mandatory")
+	@Column(name="upi_id", unique = true)
 	private String upiId;
 }

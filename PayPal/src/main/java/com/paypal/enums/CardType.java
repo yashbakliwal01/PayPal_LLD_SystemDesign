@@ -3,6 +3,8 @@ package com.paypal.enums;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum CardType {
 	VISA,
 	MASTERCARD,
@@ -20,8 +22,12 @@ public enum CardType {
 		return name.replaceAll("[_\\-\\s]", "").toUpperCase();
 	}
 	
-	
+	@JsonCreator 
+	// This annotation allows Jackson to use this method for deserialization
 	public static CardType fromString(String input) { 
+		
+		if(input == null) return null;
+		
 		String normalizedInput = normalize(input);
 		CardType type = normalizedCardTypeMap.get(normalizedInput);
 		if(type==null) {

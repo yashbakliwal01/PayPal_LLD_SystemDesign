@@ -2,7 +2,11 @@ package com.paypal.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.paypal.enums.PaymentMode;
+import com.paypal.enums.TransactionStatus;
+import com.paypal.enums.TransactionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,14 +28,12 @@ public class Transaction {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "transaction_id", nullable = false)
 	private Long id;
 	
 	private double amount;
 	
+	@CreationTimestamp
 	private LocalDateTime timestamp;
-	
-	private boolean isRefund;
 	
 	@Enumerated(EnumType.STRING) 
 	private PaymentMode paymentMode;
@@ -43,4 +45,15 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "payee_id", nullable = false)
     private Payee payee;
+
+    @Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private TransactionType transactionType;
+    
+    @Column(name = "transaction_ref", unique = true, nullable = false, updatable = false)
+    private String transactionRef;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionStatus status;
 }

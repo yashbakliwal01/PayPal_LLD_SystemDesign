@@ -1,4 +1,4 @@
-package com.paypal.utility.security;
+package com.paypal.security;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,9 +11,6 @@ import com.paypal.entity.User;
 
 public class CustomUserDetails implements UserDetails {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private final User user;
 	

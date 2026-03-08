@@ -16,25 +16,34 @@ public class UPIPaymentStrategy implements PaymentStrategy{
 	
 	@Override
 	public void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
-		 logger.info("Processing UPI payment of Rs. " + amount + " from user " + user.getName() + " to payee " + payee.getName());
-		 
-		 boolean paymentSuccess = initiateUPIPayment(user, payee, amount);
-		 
-		 if(paymentSuccess) {
-			 logger.info("UPI payment successful! Transaction ID: " + generateTransactionId());
-		 }else {
-			 logger.error("UPI payment failed. Please try again.");
-		 }
+		
+		logger.info(
+                "Processing UPI payment | user={} | userUpi={} | payee={} | payeeUpi={} | amount={}",
+                user.getName(),
+                user.getUpiId(),
+                payee.getName(),
+                payee.getUpiId(),
+                amount
+        );
+		
+		boolean paymentSuccess = initiateUPIPayment(user, payee, amount);
+		
+		if(paymentSuccess) {
+			String txnId = generateTransactionId();
+			
+			logger.info("UPI payment successful | user={} | payee={} | amount={} | txnId={}", user.getName(), payee.getName(), amount, txnId);
+		}else {
+			logger.error("UPI payment failed | user={} | payee={} | amount={}", user.getName(), payee.getName(), amount);
+		}
 	}
 
 	private boolean initiateUPIPayment(User user, Payee payee, double amount) {
-		System.out.println("Initiating UPI payment request...");
-        System.out.println("User UPI ID: " + user.getUpiId() + ", Payee UPI ID: " + payee.getUpiId());
-        return Math.random() > 0.2;
+		logger.info("Initiating UPI payment request | from={} | to={} | amount={}", user.getUpiId(), payee.getUpiId(), amount);
+		return Math.random() > 0.2; // Simulate 80% success rate
 	}
 	
 	private String generateTransactionId() {
-		 return "TXN" + System.currentTimeMillis(); 
+		return "TXN" + System.currentTimeMillis();
+		
 	}
-
 }

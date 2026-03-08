@@ -1,5 +1,7 @@
 package com.paypal.service.strategy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.paypal.entity.Payee;
@@ -10,11 +12,10 @@ import com.paypal.enums.PaymentMode;
 @Component
 public class RupayPaymentStrategy implements PaymentStrategy{
 
+	private static final Logger logger = LoggerFactory.getLogger(UPIPaymentStrategy.class);
+	
 	@Override
-	public void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cvardType) {
-		// TODO Auto-generated method stub
-		System.out.println("Inside rupay");
+	public void pay(User user, double amount, Payee payee, PaymentMode paymentMode, CardType cardType) {
+		logger.info("Processing RUPAY card payment | user={} | payee={} | amount={} | mode={}", user.getName(), payee.getName(), amount, paymentMode);
 	}
-
-
 }
